@@ -29,7 +29,7 @@ The Smart Home Automation System is a versatile project designed to enhance the 
   * Central controller for sensor data, relay management, RFID access control, and Bluetooth communication.  
   * Processes input from the ESP8266 to control relays.
 
-  #### **2\. Communication Modules**
+**2\. Communication Modules**
 
 * **Bluetooth Module (HC-05):**  
   * Provides wireless communication for controlling appliances using a smartphone app.  
