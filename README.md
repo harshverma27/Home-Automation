@@ -59,11 +59,12 @@ The Smart Home Automation System is a versatile project designed to enhance the 
 
 * Jumper Wires  
 * Buzzer
+
   ---
 
-**Steps to Use ESP8266 for Web-Based Control**
+#### **Steps to Use ESP8266 for Web-Based Control**
 
-#### **1\. ESP8266 Setup**
+**1\. ESP8266 Setup**
 
 1. Connect the ESP8266 module to your Wi-Fi network:  
    * On startup, the ESP will connect to the pre-configured Wi-Fi network.  
@@ -82,5 +83,6 @@ The Smart Home Automation System is a versatile project designed to enhance the 
 
 * The ESP8266 receives the HTTP request and identifies the command (e.g., `relay1/on`).  
 * The ESP sets the corresponding pin HIGH or LOW and notifies the Arduino Mega through connected pins.  
-* The Arduino processes this input and activates or deactivates the corresponding relay.  
+* The Arduino processes this input and activates or deactivates the corresponding relay
+* 
   ---
