@@ -1,65 +1,33 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-
-// Wi-Fi credentials
-const char* ssid = "Your_SSID"; // Replace with your Wi-Fi SSID
-const char* password = "Your_PASSWORD"; // Replace with your Wi-Fi password
-
-// ESP8266 pins connected to Arduino Mega
-const int espPins[] = {1, 2, 3, 4, 5, 6, 7, 8}; // GPIO pins for relays
-
-// Create a web server on port 80
-ESP8266WebServer server(80);
+const int relayPins[] = {23, 25, 27, 29, 31, 33, 35, 37}; // Relay pins
+const int espPins[] = {22, 24, 26, 28, 30, 32, 34, 36};   // ESP GPIO pins
 
 void setup() {
-  // Initialize serial communication
-  Serial.begin(115200);
-  Serial.println("Setting up ESP8266...");
+  Serial.begin(9600);
 
-  // Set ESP pins as OUTPUT
   for (int i = 0; i < 8; i++) {
-    pinMode(espPins[i], OUTPUT);
-    digitalWrite(espPins[i], LOW); // Ensure pins are LOW initially
+    pinMode(relayPins[i], OUTPUT);
+    pinMode(espPins[i], INPUT);
+    digitalWrite(relayPins[i], LOW); // Turn relays OFF initially
   }
-
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWi-Fi connected. IP address: ");
-  Serial.println(WiFi.localIP());
-
-  // Define routes for the web server
-  server.on("/", []() {
-    server.send(200, "text/plain", "Welcome to the ESP8266 Relay Control Web Server");
-  });
-
-  // Relay control routes
-  for (int i = 0; i < 8; i++) {
-    // Create ON route for each relay
-    server.on(String("/relay" + String(i + 1) + "/on").c_str(), [i]() {
-      digitalWrite(espPins[i], HIGH);
-      server.send(200, "text/plain", "Relay " + String(i + 1) + " turned ON");
-      Serial.println("Relay " + String(i + 1) + " turned ON");
-    });
-
-    // Create OFF route for each relay
-    server.on(String("/relay" + String(i + 1) + "/off").c_str(), [i]() {
-      digitalWrite(espPins[i], LOW);
-      server.send(200, "text/plain", "Relay " + String(i + 1) + " turned OFF");
-      Serial.println("Relay " + String(i + 1) + " turned OFF");
-    });
-  }
-
-  // Start the server
-  server.begin();
-  Serial.println("Web server started.");
+  
+  Serial.println("ESP GPIO Relay Control Initialized.");
 }
 
 void loop() {
-  // Handle incoming client requests
-  server.handleClient();
+  controlRelaysWithESP();
+}
+
+// Function to control relays using ESP GPIO pins
+void controlRelaysWithESP() {
+  for (int i = 0; i < 8; i++) {
+    int espState = digitalRead(espPins[i]); // Read ESP GPIO pin state
+    if (espState == HIGH) {
+      digitalWrite(relayPins[i], HIGH); // Turn relay ON if ESP pin is HIGH
+      Serial.print("Relay ");
+      Serial.print(i + 1);
+      Serial.println(" turned ON via ESP pin");
+    } else {
+      digitalWrite(relayPins[i], LOW); // Turn relay OFF if ESP pin is LOW
+    }
+  }
 }
