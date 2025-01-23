@@ -2,18 +2,18 @@
 #include <ESP8266WebServer.h>
 
 // Wi-Fi credentials
-const char* ssid = "Your_SSID"; // Replace with your Wi-Fi SSID
-const char* password = "Your_PASSWORD"; // Replace with your Wi-Fi password
+const char* ssid = "Student_Wifi@NITH"; // Replace with your Wi-Fi SSID
+const char* password = "student@123"; // Replace with your Wi-Fi password
 
 // ESP8266 pins connected to Arduino Mega
-const int espPins[] = {1, 2, 3, 4, 5, 6, 7, 8}; // GPIO pins for relays
+const int espPins[] = {D1, D2, D3, D4, D5, D6, D7, D8}; // GPIO pins for relays
 
 // Create a web server on port 80
 ESP8266WebServer server(80);
 
 void setup() {
   // Initialize serial communication
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Setting up ESP8266...");
 
   // Set ESP pins as OUTPUT
@@ -63,6 +63,3 @@ void loop() {
   // Handle incoming client requests
   server.handleClient();
 }
-
-
-
