@@ -1,43 +1,63 @@
-#include <SoftwareSerial.h>
+#include <Servo.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
-const int relayPins[] = {23, 25, 27, 29, 31, 33, 35, 37}; // Relay pins
-SoftwareSerial BTSerial(19, 18); // Bluetooth module on pins 19 (TX) and 18 (RX)
+Servo s1;
+const int buzzer = 6;  
+const int Relay = 44; // Door relay pin for RFID system
+const int SS_PIN = 53; // RFID SS pin
+const int RST_PIN = 49; // RFID reset pin
+const int ACCESS_DELAY = 2000; // Delay for authorized access
+const int DENIED_DELAY = 1000; // Delay for access denied
+
+MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance
 
 void setup() {
+  s1.attach(8);
   Serial.begin(9600);
-  BTSerial.begin(9600);
-  
-  for (int i = 0; i < 8; i++) {
-    pinMode(relayPins[i], OUTPUT);
-    digitalWrite(relayPins[i], LOW); // Turn relays OFF initially
-  }
-  
-  Serial.println("Bluetooth Relay Control Initialized.");
+  SPI.begin();
+  mfrc522.PCD_Init();
+  pinMode(Relay, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  digitalWrite(Relay, LOW);
+  noTone(buzzer);
+  Serial.println("RFID System Initialized. Ready for scanning.");
 }
 
 void loop() {
-  controlRelaysWithBluetooth();
+  handleRFIDAccess();
 }
 
-// Function to control relays using Bluetooth commands
-void controlRelaysWithBluetooth() {
-  if (BTSerial.available()) {
-    char command = BTSerial.read(); // Read command from Bluetooth
-
-    if (command >= 'A' && command <= 'H') {
-      int relayIndex = command - 'A'; // Map 'A'-'H' to 0-7
-      digitalWrite(relayPins[relayIndex], LOW); // Turn relay OFF
-      Serial.print("Relay ");
-      Serial.print(relayIndex + 1);
-      Serial.println(" turned OFF via Bluetooth");
-    } else if (command >= 'a' && command <= 'h') {
-      int relayIndex = command - 'a'; // Map 'a'-'h' to 0-7
-      digitalWrite(relayPins[relayIndex], HIGH); // Turn relay ON
-      Serial.print("Relay ");
-      Serial.print(relayIndex + 1);
-      Serial.println(" turned ON via Bluetooth");
-    } else {
-      Serial.println("Invalid Bluetooth command received.");
-    }
+// Function to handle RFID card scanning and access control
+void handleRFIDAccess() {
+  if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+    return;
   }
+
+  Serial.print("UID tag: ");
+  String cardUID = "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    cardUID += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+    cardUID += String(mfrc522.uid.uidByte[i], HEX);
+  }
+  cardUID.toUpperCase();
+  Serial.println(cardUID);  // Print detected UID
+
+  if (cardUID == "0185C626") { // Replace with your card's UID
+    s1.write(90);   // Rotate servo
+    Serial.println("Access Granted");
+    delay(2000);
+    digitalWrite(Relay, HIGH); // Unlock door
+    delay(ACCESS_DELAY);
+    digitalWrite(Relay, LOW); // Lock door again
+    delay(500);     // Give time for servo to move
+  } else {
+    Serial.println("Access Denied");
+    tone(buzzer, 300);
+    delay(DENIED_DELAY);
+    noTone(buzzer);
+  }
+
+  mfrc522.PICC_HaltA(); // Stop reading card
+  mfrc522.PCD_StopCrypto1();
 }
