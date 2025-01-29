@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP8266 Relay Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f9;
+    }
+    .container {
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .button {
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    .button.red {
+      background-color: red;
+    }
+    .button.blue {
+      background-color: blue;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Relay Control</h1>
+    <div>
+      <button id="relay1OnButton" class="button red" onclick="toggleRelay(1, 'on')">Relay 1 ON</button>
+      <button id="relay1OffButton" class="button blue" onclick="toggleRelay(1, 'off')">Relay 1 OFF</button>
+    </div>
+    <div>
+      <button id="relay2OnButton" class="button red" onclick="toggleRelay(2, 'on')">Relay 2 ON</button>
+      <button id="relay2OffButton" class="button blue" onclick="toggleRelay(2, 'off')">Relay 2 OFF</button>
+    </div>
+    <div>
+      <button id="relay3OnButton" class="button red" onclick="toggleRelay(3, 'on')">Relay 3 ON</button>
+      <button id="relay3OffButton" class="button blue" onclick="toggleRelay(3, 'off')">Relay 3 OFF</button>
+    </div>
+    <div>
+      <button id="relay4OnButton" class="button red" onclick="toggleRelay(4, 'on')">Relay 4 ON</button>
+      <button id="relay4OffButton" class="button blue" onclick="toggleRelay(4, 'off')">Relay 4 OFF</button>
+    </div>
+  </div>
+
+  <script>
+    let relayStatus = [false, false, false, false]; // Track states of Relays 1 to 4
+
+    function toggleRelay(relayNum, state) {
+      // Construct the URL based on relay number and state
+      const url = `http://192.168.137.162/relay${relayNum}/${state}`;
+      
+      // Send an HTTP GET request
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          alert(data);  // Show response message from the server
+          
+          // Update relay state in the array
+          relayStatus[relayNum - 1] = state === 'on';
+          
+          // Update the button styles and text
+          updateButtonColor(relayNum);
+        });
+    }
+
+    function updateButtonColor(relayNum) {
+      // Get the ON and OFF buttons for each relay
+      const onButton = document.getElementById(`relay${relayNum}OnButton`);
+      const offButton = document.getElementById(`relay${relayNum}OffButton`);
+      
+      // Update the button colors and text based on relay state
+      if (relayStatus[relayNum - 1]) {
+        onButton.classList.remove('red');
+        onButton.classList.add('blue');
+        onButton.textContent = `Relay ${relayNum} ON`;
+        
+        offButton.classList.remove('blue');
+        offButton.classList.add('red');
+        offButton.textContent = `Relay ${relayNum} OFF`;
+      } else {
+        onButton.classList.remove('blue');
+        onButton.classList.add('red');
+        onButton.textContent = `Relay ${relayNum} ON`;
+        
+        offButton.classList.remove('red');
+        offButton.classList.add('blue');
+        offButton.textContent = `Relay ${relayNum} OFF`;
+      }
+    }
+  </script>
+</body>
+</html>

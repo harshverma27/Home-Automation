@@ -1,33 +1,43 @@
+#include <SoftwareSerial.h>
+
 const int relayPins[] = {23, 25, 27, 29, 31, 33, 35, 37}; // Relay pins
-const int espPins[] = {22, 24, 26, 28, 30, 32, 34, 36};   // ESP GPIO pins
+SoftwareSerial BTSerial(10, 11); // Bluetooth module on pins 19 (TX) and 18 (RX)
 
 void setup() {
   Serial.begin(9600);
-
+  BTSerial.begin(9600);
+  
   for (int i = 0; i < 8; i++) {
     pinMode(relayPins[i], OUTPUT);
-    pinMode(espPins[i], INPUT);
     digitalWrite(relayPins[i], LOW); // Turn relays OFF initially
   }
   
-  Serial.println("ESP GPIO Relay Control Initialized.");
+  Serial.println("Bluetooth Relay Control Initialized.");
 }
 
 void loop() {
-  controlRelaysWithESP();
+  controlRelaysWithBluetooth();
 }
 
-// Function to control relays using ESP GPIO pins
-void controlRelaysWithESP() {
-  for (int i = 0; i < 8; i++) {
-    int espState = digitalRead(espPins[i]); // Read ESP GPIO pin state
-    if (espState == HIGH) {
-      digitalWrite(relayPins[i], HIGH); // Turn relay ON if ESP pin is HIGH
+// Function to control relays using Bluetooth commands
+void controlRelaysWithBluetooth() {
+  if (BTSerial.available()) {
+    char command = BTSerial.read(); // Read command from Bluetooth
+
+    if (command >= 'A' && command <= 'H') {
+      int relayIndex = command - 'A'; // Map 'A'-'H' to 0-7
+      digitalWrite(relayPins[relayIndex], LOW); // Turn relay OFF
       Serial.print("Relay ");
-      Serial.print(i + 1);
-      Serial.println(" turned ON via ESP pin");
+      Serial.print(relayIndex + 1);
+      Serial.println(" turned OFF via Bluetooth");
+    } else if (command >= 'a' && command <= 'h') {
+      int relayIndex = command - 'a'; // Map 'a'-'h' to 0-7
+      digitalWrite(relayPins[relayIndex], HIGH); // Turn relay ON
+      Serial.print("Relay ");
+      Serial.print(relayIndex + 1);
+      Serial.println(" turned ON via Bluetooth");
     } else {
-      digitalWrite(relayPins[i], LOW); // Turn relay OFF if ESP pin is LOW
+      Serial.println("Invalid Bluetooth command received.");
     }
   }
 }

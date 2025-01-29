@@ -44,11 +44,15 @@ void handleRFIDAccess() {
   Serial.println(cardUID);  // Print detected UID
 
   if (cardUID == "0185C626") { // Replace with your card's UID
-    s1.write(90);   // Rotate servo
     Serial.println("Access Granted");
-    delay(2000);
+    for(int i = 0; i < 91; i++){
+      s1.write(i);
+    }
     digitalWrite(Relay, HIGH); // Unlock door
     delay(ACCESS_DELAY);
+    for(int i = 0; i < 91; i++){
+      s1.write(91-i);
+    }
     digitalWrite(Relay, LOW); // Lock door again
     delay(500);     // Give time for servo to move
   } else {
