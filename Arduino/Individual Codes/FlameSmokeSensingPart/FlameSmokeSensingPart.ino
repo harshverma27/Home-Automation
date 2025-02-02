@@ -1,29 +1,31 @@
-// Fire and Smoke Detection
+const int fireSensor = A0;
+const int smokeSensor = A1;
 const int buzzer = 6;  
-const int smokeSensor = A0;
-const int fireSensor = 9;
+const int smokeLimit = 300;
+const int fireLimit = 250;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(buzzer, OUTPUT);
   pinMode(fireSensor, INPUT);
   pinMode(smokeSensor, INPUT);
-  noTone(buzzer);
+  pinMode(buzzer, OUTPUT);
+  Serial.println("Fire & Smoke Detection System Started.");
 }
 
 void loop() {
-  detectFireAndSmoke();
-}
-
-// Function to detect fire or smoke and sound a buzzer
-void detectFireAndSmoke() {
   int smokeValue = analogRead(smokeSensor);
-  int fireValue = digitalRead(fireSensor);
+  int fireValue = analogRead(fireSensor);
 
-  if (smokeValue > 200 || fireValue == 0) {  
-    analogWrite(buzzer, 50); // Activate buzzer
-    Serial.println("Alert: Fire or smoke detected!");
+  Serial.print("Smoke Level: ");
+  Serial.print(smokeValue);
+  Serial.print(" | Fire Level: ");
+  Serial.println(fireValue);
+
+  if (fireValue < fireLimit || smokeValue > smokeLimit) {
+    digitalWrite(buzzer, HIGH);
+    Serial.println("🔥 Alert: Fire or smoke detected!");
   } else {
-    analogWrite(buzzer, 0); // Deactivate buzzer
+    digitalWrite(buzzer, LOW);
   }
+  delay(1000);
 }

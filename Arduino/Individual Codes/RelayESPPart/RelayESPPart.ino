@@ -1,33 +1,36 @@
-const int relayPins[] = {23, 25, 27, 29, 31, 33, 35, 37}; // Relay pins
-const int espPins[] = {22, 24, 26, 28, 30, 32, 34, 36};   // ESP GPIO pins
+// Define relay control pins (connected to appliances)
+const int relayPins[] = {23, 25, 27, 29};
+
+// Define ESP8266 input pins (to receive control signals)
+const int espPins[] = {22, 24, 26, 28};
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Initialize serial communication for debugging
 
-  for (int i = 0; i < 8; i++) {
-    pinMode(relayPins[i], OUTPUT);
-    pinMode(espPins[i], INPUT);
-    digitalWrite(relayPins[i], LOW); // Turn relays OFF initially
+  // Configure relay and ESP pins
+  for (int i = 0; i < 4; i++) {
+    pinMode(relayPins[i], OUTPUT);  // Set relay pins as output (to control devices)
+    pinMode(espPins[i], INPUT);     // Set ESP pins as input (to receive signals)
+    digitalWrite(relayPins[i], LOW); // Keep all relays OFF initially
   }
-  
-  Serial.println("ESP GPIO Relay Control Initialized.");
+
+  Serial.println("ESP Relay Control Initialized.");
 }
 
 void loop() {
-  controlRelaysWithESP();
-}
+  // Iterate through all relays and check ESP8266 signals
+  for (int i = 0; i < 4; i++) {
+    int espState = digitalRead(espPins[i]); // Read the state of the ESP pin
 
-// Function to control relays using ESP GPIO pins
-void controlRelaysWithESP() {
-  for (int i = 0; i < 8; i++) {
-    int espState = digitalRead(espPins[i]); // Read ESP GPIO pin state
-    if (espState == HIGH) {
-      digitalWrite(relayPins[i], HIGH); // Turn relay ON if ESP pin is HIGH
+    if (espState == HIGH) { // If ESP8266 sends a HIGH signal
+      digitalWrite(relayPins[i], HIGH); // Turn ON the corresponding relay
       Serial.print("Relay ");
       Serial.print(i + 1);
-      Serial.println(" turned ON via ESP pin");
-    } else {
-      digitalWrite(relayPins[i], LOW); // Turn relay OFF if ESP pin is LOW
+      Serial.println(" turned ON via ESP");
+    } else { // If ESP8266 sends a LOW signal
+      digitalWrite(relayPins[i], LOW); // Turn OFF the corresponding relay
     }
   }
+
+  delay(500); // Short delay to reduce CPU load
 }
