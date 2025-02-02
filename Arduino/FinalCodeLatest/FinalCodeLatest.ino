@@ -1,17 +1,13 @@
 #include <MFRC522.h>
 #include <MFRC522Extended.h>
-#include <deprecated.h>
-#include <require_cpp11.h>
-
 #include <Servo.h>
 #include <SPI.h>
 #include <MFRC522.h>
-#include <SoftwareSerial.h>
 
-SoftwareSerial BTSerial(10, 11);  // Bluetooth module on pins 10 (RX) and 11 (TX)
-Servo s1;
-const int fireSensor = 2;
-const int smokeSensor = A0;
+// Define hardware pins
+const int fireSensor = A0;
+const int servopin = 8;
+const int smokeSensor = A1;
 const int buzzer = 6;
 const int Relay = 44;                        // Door relay pin for RFID system
 const int SS_PIN = 53;                        // RFID SS pin
@@ -20,11 +16,13 @@ const int ACCESS_DELAY = 2000;               // Delay for authorized access
 const int DENIED_DELAY = 1000;               // Delay for access denied
 const int relayPins[] = { 23, 25, 27, 29 };  // Relay pins
 const int espPins[] = { 22, 24, 26, 28 };    // ESP GPIO pins
+const int soundSensorPin = A2;               // Sound sensor pin (use an analog pin for intensity)             // Sound threshold to detect loud noise
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
+Servo s1;
 
 void setup() {
-  s1.attach(8);
+  s1.attach(servopin);
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
@@ -34,9 +32,8 @@ void setup() {
   noTone(buzzer);
   pinMode(fireSensor, INPUT);
   pinMode(smokeSensor, INPUT);
+  pinMode(soundSensorPin, INPUT);
   Serial.println("RFID System Initialized. Ready for scanning.");
-  BTSerial.begin(9600);
-  Serial.println("Bluetooth & ESP Relay Control Initialized.");
 
   for (int i = 0; i < 4; i++) {
     pinMode(relayPins[i], OUTPUT);
@@ -46,7 +43,10 @@ void setup() {
 }
 
 void loop() {
-  controlRelays();
+  handleRFIDAccess();
+  controlRelaysWithESP();
+  detectFireAndSmoke();
+  detectSoundAndControlRelay();
 }
 
 // Function to handle RFID card scanning and access control
@@ -87,76 +87,41 @@ void handleRFIDAccess() {
   mfrc522.PCD_StopCrypto1();
 }
 
-// Function to handle Bluetooth & ESP control together
-bool relayStates[4] = {false, false, false, false};  // Track relay states (ON or OFF)
-int espStateLast[4] = {LOW, LOW, LOW, LOW};  // Track last state of ESP pins to avoid repeated checks
-
-void controlRelays() {
-  // Read Bluetooth input if available
-  char command = '\0';  // Default: No command
-  if (BTSerial.available()) {
-    command = BTSerial.read();
-    Serial.print("Received Bluetooth Command: ");
-    Serial.println(command);
-  }
-
-  for (int i = 0; i < 4; i++) {
-    int espState = digitalRead(espPins[i]);  // Read ESP GPIO pin state
-
-    bool desiredState = relayStates[i];  // Default to current relay state
-
-    // Check for Bluetooth command
-    if (command == ('a' + i)) {
-      desiredState = true;  // Turn ON via Bluetooth
-    } 
-    else if (command == ('A' + i)) {
-      desiredState = false;  // Turn OFF via Bluetooth
-    }
-
-    // Check for ESP state change
-    if (espState != espStateLast[i]) {
-      // Update the ESP state
-      espStateLast[i] = espState;
-
-      // If ESP state is HIGH, relay should be ON; if LOW, relay should be OFF
-      if (espState == HIGH) {
-        desiredState = true;  // Turn ON via ESP
-      } else {
-        desiredState = false;  // Turn OFF via ESP
-      }
-    }
-
-    // Change relay state if necessary
-    if (relayStates[i] != desiredState) {
-      relayStates[i] = desiredState;  // Update internal state
-
-      if (desiredState) {
-        digitalWrite(relayPins[i], HIGH);  // Turn relay ON
-        Serial.print("Relay ");
-        Serial.print(i + 1);
-        Serial.println(" turned ON");
-      }
-      else {
-        digitalWrite(relayPins[i], LOW);  // Turn relay OFF
-        Serial.print("Relay ");
-        Serial.print(i + 1);
-        Serial.println(" turned OFF");
-      }
-    }
-  }
-}
-
-
-
 // Function to detect fire and smoke
 void detectFireAndSmoke() {
   int smokeValue = analogRead(smokeSensor);
-  int fireValue = digitalRead(fireSensor);
+  int fireValue = analogRead(fireSensor);
 
-  if (smokeValue > 200 || fireValue == 0) {
-    analogWrite(buzzer, 50);  // Activate buzzer
+  if (fireValue < 250 || smokeValue > 300 ) {
+    digitalWrite(buzzer, HIGH);  // Activate buzzer
     Serial.println("Alert: Fire or smoke detected!");
   } else {
-    analogWrite(buzzer, 0);  // Deactivate buzzer
+    digitalWrite(buzzer, LOW);  // Deactivate buzzer
+  }
+}
+
+// Function to detect sound intensity and control relay
+void detectSoundAndControlRelay() {
+  int soundValue = analogRead(soundSensorPin);  // Read sound sensor value (0-1)
+
+  if (soundValue > 75) {  // If sound is above threshold
+    digitalWrite(relayPins[0], HIGH);  // Turn on Relay 1 (connected to pin 23)
+    Serial.println("Relay 1 turned ON due to loud sound.");
+    delay(3000);  // Keep Relay 1 ON for 2 seconds
+    digitalWrite(relayPins[0], LOW);  // Turn off Relay 1 after 2 seconds
+    Serial.println("Relay 1 turned OFF.");
+  }
+}
+void controlRelaysWithESP() {
+  for (int i = 0; i < 4; i++) {
+    int espState = digitalRead(espPins[i]); // Read ESP GPIO pin state
+    if (espState == HIGH) {
+      digitalWrite(relayPins[i], HIGH); // Turn relay ON if ESP pin is HIGH
+      Serial.print("Relay ");
+      Serial.print(i + 1);
+      Serial.println(" turned ON via ESP pin");
+    } else {
+      digitalWrite(relayPins[i], LOW); // Turn relay OFF if ESP pin is LOW
+    }
   }
 }
