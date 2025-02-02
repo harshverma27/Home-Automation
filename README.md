@@ -54,7 +54,6 @@ Appliances can be controlled using:
 |-----------|----------|
 | **Relays** | Toggle appliances ON/OFF. |
 | **Servo Motor** | Controls door locking mechanism. |
-| **DC Lock Mechanism** | Provides physical security for door access. |
 | **Buzzer** | Alerts in case of unauthorized access or danger. |
 
 ---
