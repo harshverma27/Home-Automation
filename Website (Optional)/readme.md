@@ -80,14 +80,4 @@ The ESP8266 **reads the URL parameters** (`relayX/on` or `relayX/off`) and toggl
 2. Open a browser and enter the IP (e.g., `http://192.162.137.138`).
 3. The webpage will load, allowing **relay control**.
 
----
-
-## **Future Improvements**
-✅ **Real-Time Feedback** – Display the actual relay state fetched from ESP8266.  
-✅ **Google Assistant Integration** – Use voice commands to trigger relay actions.  
-✅ **Custom Mobile App** – Replace the browser interface with an Android app.  
-
----
-
-## **Conclusion**
-The **web-based relay control system** makes home automation more **accessible and efficient**. With **ESP8266 handling HTTP requests**, users can control appliances wirelessly, eliminating the need for physical switches. This system can be expanded for **advanced IoT applications**, making smart home automation even more powerful. 🚀  
+--- 
