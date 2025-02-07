@@ -1,34 +1,50 @@
-# Ignore APK files
-*.apk
+# Ignore Android build outputs (inside all subdirectories)
+**/build/
+**/outputs/
+**/captures/
+**/intermediates/
 
-# Ignore Gradle files
-.gradle/
-gradlew
-gradlew.bat
-gradle/wrapper/
+# Ignore APKs & AABs
+**/*.apk
+**/*.aab
 
-# Ignore IDE-specific files
-.idea/
-*.iml
+# Ignore Java Archives (JARs)
+**/*.jar
 
-# Ignore build artifacts
-/build/
-*/build/
+# Ignore Gradle files and generated folders
+**/.gradle/
+**/gradle/wrapper/
+**/gradlew
+**/gradlew.bat
 
-# Ignore binary and cache files
-*.log
-.DS_Store
-*.jar
+# Ignore IDE-specific files (Android Studio, IntelliJ, VS Code, etc.)
+**/.idea/
+**/*.iml
+**/.vscode/
+**/.cxx/
+**/.settings/
+**/.classpath/
+**/.project/
 
-# Ignore local properties
-local.properties
+# Ignore local properties (SDK paths, user-specific settings)
+**/local.properties
 
-# Ignore node_modules (if any)
-node_modules/
+# Ignore logs, test coverage & debugging files
+**/*.log
+**/*.lcov
+**/coverage/
 
-# Ignore test coverage reports
-*.lcov
-coverage/
+# macOS specific files
+**/.DS_Store
 
-# Ignore generated files
-captures/
+# Ignore NPM modules (if applicable)
+**/node_modules/
+
+# Ignore generated native build files (CMake, NDK, etc.)
+**/cmake-build-debug/
+**/externalNativeBuild/
+
+# Ignore compiled classes & caches
+**/bin/
+**/obj/
+**/.cache/
