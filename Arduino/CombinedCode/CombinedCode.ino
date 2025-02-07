@@ -33,10 +33,8 @@ void setup() {
   SPI.begin();           // Initialize SPI communication (required for RFID module)
   mfrc522.PCD_Init();    // Initialize RFID module
   
-  // Set up output pins
-  pinMode(Relay, OUTPUT);
+
   pinMode(buzzer, OUTPUT);
-  digitalWrite(Relay, LOW);  // Keep relay (door lock) initially locked
   noTone(buzzer);            // Ensure buzzer is off at startup
   
   // Set up sensor pins
@@ -58,7 +56,6 @@ void loop() {
   handleRFIDAccess();         // Handle RFID-based access control
   controlRelaysWithESP();     // Control relays based on ESP8266 input signals
   detectFireAndSmoke();       // Detect fire and smoke
-  detectSoundAndControlRelay();  // Detect sound and control relay accordingly
 }
 
 // Function to handle RFID card scanning and access control
