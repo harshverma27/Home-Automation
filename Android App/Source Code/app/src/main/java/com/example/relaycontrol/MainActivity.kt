@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,11 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.relaycontrol.ui.theme.RelaycontrolTheme
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import kotlin.concurrent.thread
@@ -29,7 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             RelaycontrolTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    RelayControlApp(modifier = Modifier.padding(innerPadding))
+                    RelayControlApp(modifier = Modifier.padding(innerPadding).background(color = Color(34, 124, 157)))
                 }
             }
         }
@@ -37,9 +43,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun RelayControlApp(modifier: Modifier = Modifier.background(color = Color(167, 144, 165))) {
+fun RelayControlApp(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val client = OkHttpClient()
+
 
     // State to track if each relay is ON or OFF
     var relay1State by remember { mutableStateOf(false) }
@@ -53,6 +60,9 @@ fun RelayControlApp(modifier: Modifier = Modifier.background(color = Color(167, 
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+
+        HeaderSection(modifier = Modifier)
+        Spacer(modifier = Modifier.height(10.dp))
         // Upper row: Relay 1 (left) and Relay 2 (right)
         Row(
             modifier = Modifier
@@ -121,12 +131,21 @@ fun RelayButtonAndIndicator(
     modifier: Modifier = Modifier
 ) {
     var localRelayState by remember { mutableStateOf(isRelayOn) }
+    var elapsedTime by remember { mutableStateOf(0) } // Timer in seconds
+
+    // Launch the timer when relay is ON
+    LaunchedEffect(localRelayState) {
+        while (localRelayState) {
+            delay(1000L) // Wait for 1 second
+            elapsedTime++ // Increase time by 1 second
+        }
+    }
 
     Card(
         modifier = modifier
             .padding(8.dp)
             .fillMaxHeight(),
-        colors = CardDefaults.cardColors(containerColor = Color(197, 235, 195))
+        colors = CardDefaults.cardColors(containerColor = Color(23, 195, 178))
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -135,6 +154,36 @@ fun RelayButtonAndIndicator(
                 .fillMaxHeight()
                 .padding(16.dp)
         ) {
+            // Timer Display
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .align(Alignment.CenterHorizontally),
+                colors = CardDefaults.cardColors(containerColor = Color(255, 203, 119)) // Optional background color
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally, // Centers children horizontally
+                    verticalArrangement = Arrangement.Center // Centers children vertically
+                ) {
+                    Text(
+                        text = "Time Since ON:",
+                        color = Color.Black,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "${elapsedTime / 60}m ${elapsedTime % 60}s",
+                        color = Color.Black,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Relay status indicator (circle)
             Box(
                 modifier = Modifier
@@ -152,6 +201,7 @@ fun RelayButtonAndIndicator(
                 sendRequest("http://192.168.137.138/relay$relayNumber/on", client, context) { success ->
                     if (success) {
                         localRelayState = true
+                        elapsedTime = 0 // Reset the timer when relay turns ON
                         onRelayChange(true)
                     }
                 }
@@ -176,6 +226,7 @@ fun RelayButtonAndIndicator(
     }
 }
 
+
 fun sendRequest(url: String, client: OkHttpClient, context: android.content.Context, onResult: (Boolean) -> Unit) {
     thread {
         try {
@@ -196,6 +247,32 @@ fun sendRequest(url: String, client: OkHttpClient, context: android.content.Cont
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 onResult(false)
             }
+        }
+    }
+}
+@Composable
+fun HeaderSection(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(207, 92, 54))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(0.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly, // Centers content horizontally
+            verticalAlignment = Alignment.CenterVertically // Centers content vertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.img), // Replace with your image name
+                contentDescription = "Logo",
+                modifier = Modifier.size(75.dp) // Adjust size as needed
+            )
+            Text(
+                text = "Designed By SPEC",
+                textAlign = TextAlign.Center, fontSize = 16.5.sp
+            )
+
         }
     }
 }
