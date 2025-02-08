@@ -8,6 +8,7 @@
 const int fireSensor = A0;             // Analog pin for fire sensor
 const int smokeSensor = A1;            // Analog pin for smoke sensor
 const int soundSensorPin = A2;         // Analog pin for sound sensor
+const int motionPin = 39;              // State pin of motion sensor 
 const int servopin = 8;                // Servo motor pin (for door control)
 const int buzzer = 6;                  // Buzzer pin (used for alarms)
 const int SS_PIN = 53;                 // RFID module SS (Slave Select) pin
@@ -56,6 +57,7 @@ void loop() {
   handleRFIDAccess();         // Handle RFID-based access control
   controlRelaysWithESP();     // Control relays based on ESP8266 input signals
   detectFireAndSmoke();       // Detect fire and smoke
+  controlRelaywithMotion();   // Control Relay with Motion
 }
 
 // Function to handle RFID card scanning and access control
@@ -144,5 +146,13 @@ void controlRelaysWithESP() {
     } else {
       digitalWrite(relayPins[i], LOW); // Turn OFF relay
     }
+  }
+}
+void controlRelaywithMotion(){
+  if (digitalRead(motionPin) == HIGH){
+    Serial.println("Motion Detected Relay 4 On");
+    digitalWrite(relayPins[3], HIGH);
+    delay(5000);
+    digitalWrite(relayPins[3], LOW);
   }
 }
